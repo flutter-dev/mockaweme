@@ -23,13 +23,21 @@ class VideoPlayViewState extends State<VideoPlayView> {
       ..addListener(() {
         final bool isPlaying = _controller.value.isPlaying;
         if (isPlaying != _isPlaying) {
-          setState(() {
-            _isPlaying = isPlaying;
-          });
+          if (mounted) {
+            setState(() {
+              _isPlaying = isPlaying;
+            });
+          }
         }
       })
       ..setLooping(true)
       ..initialize();
+  }
+
+  @override
+  dispose() {
+    super.dispose();
+    _controller.pause();
   }
 
   play() {

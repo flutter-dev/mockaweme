@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mockaweme/repo/repo.dart';
 import 'package:mockaweme/pages/video_play_page.dart';
+import 'package:mockaweme/pages/profile_page.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -10,15 +11,44 @@ class HomePage extends StatefulWidget {
 }
 
 class HomePageState extends State<HomePage> {
+  GlobalKey<_VerticalVideoPageState> _verticalVideoPageStateKey =
+      new GlobalKey();
+  PageController _pageController;
+  @override
+  void initState() {
+    super.initState();
+    _pageController = new PageController();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return new PageView(
-      children: <Widget>[new _VerticalVideoPage()],
+    return new PageView.builder(
+      itemCount: 2,
+      itemBuilder: (BuildContext context, int position) {
+        if (position == 0) {
+          return new _VerticalVideoPage(
+            key: _verticalVideoPageStateKey,
+          );
+        }
+        if (position == 1) {
+          return new ProfilePage();
+        }
+      },
+      controller: _pageController,
+      onPageChanged: (int position) {
+        if (position == 1) {
+          _verticalVideoPageStateKey.currentState.stop();
+        }
+      },
     );
   }
 }
 
 class _VerticalVideoPage extends StatefulWidget {
+
+
+  _VerticalVideoPage({Key key}) : super(key: key);
+
   @override
   State<StatefulWidget> createState() {
     return new _VerticalVideoPageState();
@@ -34,10 +64,9 @@ class _VerticalVideoPageState extends State<_VerticalVideoPage> {
   @override
   void initState() {
     super.initState();
-
-    _pageController = new PageController();
+    print('init vertical video page   ,current page : $_currentPage');
+    _pageController = new PageController(initialPage: _currentPage);
     _repo.fetchVideoList().then((onValue) {
-      print("================${onValue.length}");
       setState(() {
         _videoList = onValue;
         _videoList.forEach((f) {
@@ -47,15 +76,23 @@ class _VerticalVideoPageState extends State<_VerticalVideoPage> {
     });
   }
 
+  stop() {
+    for (int i = 0; i < videoGlobalKeys.length; i++) {
+      VideoPlayViewState videoPalyViewState = videoGlobalKeys[i].currentState;
+      if (videoPalyViewState != null) videoPalyViewState.pause();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    print(' build vertical video page');
     return new Stack(
       children: <Widget>[
         new NotificationListener<ScrollNotification>(
-          onNotification: (ScrollNotification scrollNotification){
-            if(scrollNotification is ScrollEndNotification){
-              if(_pageController.page.toInt() != _pageController.page) return;
-              if(_currentPage == _pageController.page.toInt()) return;
+          onNotification: (ScrollNotification scrollNotification) {
+            if (scrollNotification is ScrollEndNotification) {
+              if (_pageController.page.toInt() != _pageController.page) return;
+              if (_currentPage == _pageController.page.toInt()) return;
               for (int i = 0; i < videoGlobalKeys.length; i++) {
                 VideoPlayViewState videoPalyViewState =
                     videoGlobalKeys[i].currentState;
